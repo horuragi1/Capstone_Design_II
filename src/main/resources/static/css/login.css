@@ -1,0 +1,21 @@
+.label-input {
+    display: inline-block;
+    width: 75px;
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.div-login {
+    margin : 5px;
+}
+
+.btn-login {
+    margin: 5px;
+}
+
