@@ -9,13 +9,13 @@ public class LoginController {
 
     @PostMapping("/login")
     public String handleLogin(
-            @RequestParam String id,
+            @RequestParam String user,
             @RequestParam String pw,
             @RequestParam String ip) {
 
-        System.out.println("ID: " + id);
-        System.out.println("Password: " + pw);
-        System.out.println("IP Address: " + ip);
+        String argv = String.format("./freerdp /u:%s /p:%s /v:%s", user, pw, ip);
+
+        System.out.println(argv);
 
         return "redirect:/screen.html";
     }
