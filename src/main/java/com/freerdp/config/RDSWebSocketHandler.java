@@ -1,4 +1,4 @@
-package com.example.demo.config;
+package com.freerdp.config;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
