@@ -11,8 +11,6 @@ socket.onopen = () => {
 
 socket.onmessage = (event) => {
     console.log('Message received');
-    if(event.data instanceof ArrayBuffer)
-        console.log("image is ArrayBuffer");
     const imageData = new Uint8Array(event.data);
 
     const blob = new Blob([imageData], { type: "image/bmp" });

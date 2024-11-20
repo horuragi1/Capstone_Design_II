@@ -139,9 +139,9 @@ public class LibFreeRDP
             int index = 0;
             for (int yy = y; yy < y + height; yy++) {
                 for (int xx = x; xx < x + width; xx++) {
-                    int b = UserData.bitmap[index] & 0xFF;
-                    int g = UserData.bitmap[index + 1] & 0xFF;
-                    int r = UserData.bitmap[index + 2] & 0xFF;
+                    int b = UserData.bitmap[(yy*total_width + xx)*4] & 0xFF;
+                    int g = UserData.bitmap[(yy*total_width + xx)*4 + 1] & 0xFF;
+                    int r = UserData.bitmap[(yy*total_width + xx)*4 + 2] & 0xFF;
                     int pixel = (r << 16) | (g << 8) | b;
                     UserData.image.setRGB(xx, yy, pixel);
                     index += 4;
@@ -152,10 +152,8 @@ public class LibFreeRDP
             try {
                 ImageIO.write(UserData.image, "bmp", baos);
                 byte[] bitmapData = baos.toByteArray();
-                if (bitmapData != null) {
-                    logger.info("length: " + bitmapData.length);
+                if (bitmapData != null)
                     UserData.ws.sendMessage(new BinaryMessage(bitmapData));
-                }
             } catch (Exception e) {
                 e.printStackTrace();
             }
