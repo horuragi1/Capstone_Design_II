@@ -8,7 +8,6 @@ import com.freerdp.services.LibFreeRDP;
 public class FreeRDPApplication {
 
 	public static void main(String[] args) {
-		LibFreeRDP.init();
 		SpringApplication.run(FreeRDPApplication.class, args);
 	}
 

@@ -9,43 +9,83 @@ extern "C" {
 #endif
 /*
  * Class:     com_freerdp_services_LibFreeRDP
- * Method:    freerdp_init
- * Signature: ()Z
+ * Method:    freerdp_new
+ * Signature: ()J
  */
-JNIEXPORT jboolean JNICALL Java_com_freerdp_services_LibFreeRDP_freerdp_1init
+JNIEXPORT jlong JNICALL Java_com_freerdp_services_LibFreeRDP_freerdp_1new
   (JNIEnv *, jclass);
+
+/*
+ * Class:     com_freerdp_services_LibFreeRDP
+ * Method:    freerdp_free
+ * Signature: (J)V
+ */
+JNIEXPORT void JNICALL Java_com_freerdp_services_LibFreeRDP_freerdp_1free
+  (JNIEnv *, jclass, jlong);
 
 /*
  * Class:     com_freerdp_services_LibFreeRDP
  * Method:    freerdp_login
- * Signature: (Ljava/lang/String;)Z
+ * Signature: (JLjava/lang/String;)Z
  */
 JNIEXPORT jboolean JNICALL Java_com_freerdp_services_LibFreeRDP_freerdp_1login
-  (JNIEnv *, jclass, jstring);
+  (JNIEnv *, jclass, jlong, jstring);
+
+/*
+ * Class:     com_freerdp_services_LibFreeRDP
+ * Method:    freerdp_connect
+ * Signature: (J)Z
+ */
+JNIEXPORT jboolean JNICALL Java_com_freerdp_services_LibFreeRDP_freerdp_1connect
+  (JNIEnv *, jclass, jlong);
+
+/*
+ * Class:     com_freerdp_services_LibFreeRDP
+ * Method:    freerdp_disconnect
+ * Signature: (J)Z
+ */
+JNIEXPORT jboolean JNICALL Java_com_freerdp_services_LibFreeRDP_freerdp_1disconnect
+  (JNIEnv *, jclass, jlong);
+
+/*
+ * Class:     com_freerdp_services_LibFreeRDP
+ * Method:    get_freerdp_desktop_height
+ * Signature: (J)I
+ */
+JNIEXPORT jint JNICALL Java_com_freerdp_services_LibFreeRDP_get_1freerdp_1desktop_1height
+  (JNIEnv *, jclass, jlong);
+
+/*
+ * Class:     com_freerdp_services_LibFreeRDP
+ * Method:    get_freerdp_desktop_width
+ * Signature: (J)I
+ */
+JNIEXPORT jint JNICALL Java_com_freerdp_services_LibFreeRDP_get_1freerdp_1desktop_1width
+  (JNIEnv *, jclass, jlong);
 
 /*
  * Class:     com_freerdp_services_LibFreeRDP
  * Method:    freerdp_copy_bitmap
- * Signature: ()Z
+ * Signature: (J[BIIII)Z
  */
 JNIEXPORT jboolean JNICALL Java_com_freerdp_services_LibFreeRDP_freerdp_1copy_1bitmap
-  (JNIEnv *, jclass);
+  (JNIEnv *, jclass, jlong, jbyteArray, jint, jint, jint, jint);
 
 /*
  * Class:     com_freerdp_services_LibFreeRDP
  * Method:    freerdp_send_cursor_event
- * Signature: ()Z
+ * Signature: (JIII)Z
  */
 JNIEXPORT jboolean JNICALL Java_com_freerdp_services_LibFreeRDP_freerdp_1send_1cursor_1event
-  (JNIEnv *, jclass);
+  (JNIEnv *, jclass, jlong, jint, jint, jint);
 
 /*
  * Class:     com_freerdp_services_LibFreeRDP
  * Method:    freerdp_send_key_event
- * Signature: ()Z
+ * Signature: (JIZ)Z
  */
 JNIEXPORT jboolean JNICALL Java_com_freerdp_services_LibFreeRDP_freerdp_1send_1key_1event
-  (JNIEnv *, jclass);
+  (JNIEnv *, jclass, jlong, jint, jboolean);
 
 #ifdef __cplusplus
 }

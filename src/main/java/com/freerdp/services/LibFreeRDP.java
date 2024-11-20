@@ -10,8 +10,16 @@
 
 package com.freerdp.services;
 
+import com.freerdp.user.UserData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.socket.BinaryMessage;
+
+import javax.imageio.ImageIO;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import java.time.LocalTime;
 
 public class LibFreeRDP
 {
@@ -39,36 +47,119 @@ public class LibFreeRDP
             throw e;
         }
     }
-    private static native boolean freerdp_init();
-    private static native boolean freerdp_login(String s);
-    private static native boolean freerdp_copy_bitmap();
-    private static native boolean freerdp_send_cursor_event();
-    private static native boolean freerdp_send_key_event();
+    private static native long freerdp_new();
+    private static native void freerdp_free(long inst);
+    private static native boolean freerdp_login(long inst, String s);
+    private static native boolean freerdp_connect(long inst);
+    private static native boolean freerdp_disconnect(long inst);
+    private static native int get_freerdp_desktop_height(long inst);
+    private static native int get_freerdp_desktop_width(long inst);
+    private static native boolean freerdp_copy_bitmap(long inst, byte[] bitmap, int x, int y, int width, int height);
+    private static native boolean freerdp_send_cursor_event(long inst, int x, int y, int flags);
+    private static native boolean freerdp_send_key_event(long inst, int keycode, boolean isDown);
 
-    public static boolean init()
-    {
-        return freerdp_init();
+    public static long newInstance() { return freerdp_new(); }
+    public static void freeInstance(long inst) { freerdp_free(inst); }
+    public static boolean login(long inst, String s) {
+        return freerdp_login(inst, s);
+    }
+    public static boolean connect(long inst) {
+        int width = LibFreeRDP.get_width(inst);
+        int height = LibFreeRDP.get_height(inst);
+        UserData.bitmap = new byte[4 * width * height];
+        return freerdp_connect(inst);
+    }
+    public static boolean disconnect(long inst) { return freerdp_disconnect(inst); }
+    public static int get_height(long inst) { return get_freerdp_desktop_height(inst); }
+    public static int get_width(long inst) { return get_freerdp_desktop_width(inst); }
+
+    // require implementation
+    public static boolean copy_bitmap(long inst, byte[] bitmap, int x, int y, int width, int height) {
+        return freerdp_copy_bitmap(inst, bitmap, x, y, width, height);
     }
 
-    public static boolean login(String s)
+
+    public static boolean send_cursor_event(long inst, int x, int y, int flags)
     {
-        return freerdp_login(s);
+        return freerdp_send_cursor_event(inst, x, y, flags);
     }
 
-    //이 부분 마음대로 수정
-    public static boolean copy_bitmap()
+    public static boolean send_key_event(long inst, int keycode, boolean isDown)
     {
-        return freerdp_copy_bitmap();
+        return freerdp_send_key_event(inst, keycode, isDown);
     }
 
-    public static boolean send_cursor_event()
-    {
-        return freerdp_send_cursor_event();
+    public static byte[] createBitmapImage() {
+        try {
+            int total_width = LibFreeRDP.get_width(UserData.instance);
+            int total_height = LibFreeRDP.get_height(UserData.instance);
+            logger.info("{}, {}", total_width, total_height);
+            copy_bitmap(UserData.instance, UserData.bitmap, 0, 0, total_width, total_height);
+            BufferedImage image = new BufferedImage(total_width, total_height, BufferedImage.TYPE_INT_RGB);
+            Graphics2D graphics = image.createGraphics();
+            graphics.setColor(Color.WHITE);
+            graphics.fillRect(0, 0, total_width, total_height);
+            graphics.dispose();
+
+            int index = 0;
+            for (int y = 0; y < total_height; y++) {
+                for (int x = 0; x < total_width; x++) {
+                    int b = UserData.bitmap[index] & 0xFF;
+                    int g = UserData.bitmap[index + 1] & 0xFF;
+                    int r = UserData.bitmap[index + 2] & 0xFF;
+                    int pixel = (r << 16) | (g << 8) | b;
+                    image.setRGB(x, y, pixel);
+                    index += 4;
+                }
+            }
+
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ImageIO.write(image, "bmp", baos);
+            return baos.toByteArray();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
-    public static boolean send_key_event()
+    private static void OnGraphicsUpdate(long inst, int x, int y, int width, int height)
     {
-        return freerdp_send_key_event();
+        if(UserData.ws == null)
+            return;
+
+        logger.info("{}, {}, {}, {}, {}", inst, x, y, width, height);
+        copy_bitmap(inst, UserData.bitmap, x, y, width, height);
+
+        if(UserData.bitmap != null) {
+            int total_width = LibFreeRDP.get_width(UserData.instance);
+            int total_height = LibFreeRDP.get_height(UserData.instance);
+            if(UserData.image == null)
+                UserData.image = new BufferedImage(total_width, total_height, BufferedImage.TYPE_INT_RGB);
+
+            int index = 0;
+            for (int yy = y; yy < y + height; yy++) {
+                for (int xx = x; xx < x + width; xx++) {
+                    int b = UserData.bitmap[index] & 0xFF;
+                    int g = UserData.bitmap[index + 1] & 0xFF;
+                    int r = UserData.bitmap[index + 2] & 0xFF;
+                    int pixel = (r << 16) | (g << 8) | b;
+                    UserData.image.setRGB(xx, yy, pixel);
+                    index += 4;
+                }
+            }
+
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            try {
+                ImageIO.write(UserData.image, "bmp", baos);
+                byte[] bitmapData = baos.toByteArray();
+                if (bitmapData != null) {
+                    logger.info("length: " + bitmapData.length);
+                    UserData.ws.sendMessage(new BinaryMessage(bitmapData));
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     /*
