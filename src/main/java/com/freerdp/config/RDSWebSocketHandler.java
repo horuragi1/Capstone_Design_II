@@ -2,6 +2,7 @@ package com.freerdp.config;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.freerdp.services.InputMapper;
 import com.freerdp.services.LibFreeRDP;
 import com.freerdp.user.UserData;
 import org.slf4j.Logger;
@@ -17,11 +18,13 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.Timer;
 import java.util.concurrent.TimeUnit;
 
+import java.awt.event.KeyEvent;
+
 public class RDSWebSocketHandler extends TextWebSocketHandler {
     private static final Logger logger = LoggerFactory.getLogger(RDSWebSocketHandler.class);
     private final ObjectMapper objectMapper;
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-
+    static int mouseState = InputMapper.MOUSE_HOLD;
     public RDSWebSocketHandler(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
     }
@@ -30,40 +33,7 @@ public class RDSWebSocketHandler extends TextWebSocketHandler {
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         UserData.ws = session;
         super.afterConnectionEstablished(session);
-
-        /*
-        scheduler.scheduleAtFixedRate(() -> {
-            try {
-                byte[] bitmapData = LibFreeRDP.createBitmapImage();
-                if(bitmapData != null) {
-                    session.sendMessage(new BinaryMessage(bitmapData));
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }, 0, 1, TimeUnit.SECONDS);
-         */
     }
-
-    /*
-    * @Override
-    public void afterConnectionEstablished(WebSocketSession session) throws Exception {
-        System.out.println("Client Connected: " + session.getId());
-
-        scheduler.scheduleAtFixedRate(() -> {
-            try {
-                byte[] bitmapData = BitmapUtil.createBitmapImage(LocalTime.now().toString());
-                if(bitmapData != null) {
-                    System.out.println("전송 데이터 길이: " + bitmapData.length);
-                    session.sendMessage(new BinaryMessage(bitmapData));
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }, 0, 1, TimeUnit.SECONDS);
-    }
-    *
-    * */
 
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
@@ -94,9 +64,14 @@ public class RDSWebSocketHandler extends TextWebSocketHandler {
         String action = jsonNode.get("action").asText();
         String code = jsonNode.get("code").asText();
         String key = jsonNode.get("key").asText();
+        int keyCode = KeyEvent.getExtendedKeyCodeForChar(key.charAt(0));
+        char unicodeChar = (char) keyCode;
+        boolean isDown = false;
 
-        /*logger.info("{}", action);
-        logger.info("{}", code);*/
+        logger.info("action {} -> code: {}, key: {}, unicodeChar: {}", action, code, key, unicodeChar);
+        if(action.equals("keydown"))
+            isDown = true;
+        //LibFreeRDP.send_key_event(UserData.instance, unicodeChar, isDown);
     }
 
     private void handleMouseEvent(JsonNode jsonNode) {
@@ -105,9 +80,18 @@ public class RDSWebSocketHandler extends TextWebSocketHandler {
         int y = jsonNode.get("y").asInt();
         int button = jsonNode.has("button") ? jsonNode.get("button").asInt() : -1;
 
-        /*logger.info(action);
-        logger.info("{}", x);
-        logger.info("{}", y);
-        logger.info("{}", button);*/
+        if(action.equals("mousemove"))
+            mouseState = InputMapper.MOUSE_MOVE;
+        else if (action.equals("mouseup"))
+            mouseState = InputMapper.MOUSE_UP;
+        else if (action.equals("mousedown"))
+            mouseState = InputMapper.MOUSE_DOWN;
+        else
+            mouseState = InputMapper.MOUSE_HOLD;
+
+        //logger.info("action {} -> (x, y): ({}, {}), button: {}", action, x, y, button);
+
+       if(!LibFreeRDP.send_cursor_event(UserData.instance, x, y, button, mouseState))
+           logger.info("FAIL: mouse event");
     }
 }
