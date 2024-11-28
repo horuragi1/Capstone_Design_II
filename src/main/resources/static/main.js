@@ -7,10 +7,14 @@ socket.binaryType ="arraybuffer";
 
 socket.onopen = () => {
     console.log('WebSocket connection established');
+    const user = localStorage.getItem('user');
+    const pw = localStorage.getItem('pw');
+    const ip = localStorage.getItem('ip');
+    sendLoginEvent("login", user, pw, ip);
 };
 
 socket.onmessage = (event) => {
-    console.log('Message received');
+    //console.log('Message received');
     const imageData = new Uint8Array(event.data);
 
     const blob = new Blob([imageData], { type: "image/bmp" });
@@ -19,7 +23,7 @@ socket.onmessage = (event) => {
     const img = new Image();
 
     img.onload = () => {
-        console.log("image loaded");
+        //console.log("image loaded");
 
         canvas.width = img.width;
         canvas.height = img.height;
@@ -78,6 +82,17 @@ function getRelativeCoordinates(event) {
     };
 }
 
+function sendLoginEvent(action, user, pw, ip) {
+    const message = JSON.stringify({
+        type: 'login',
+        action: action,
+        user: user,
+        pw: pw,
+        ip: ip
+    });
+    socket.send(message);
+}
+
 function sendKeyEvent(action, code, key) {
     const message = JSON.stringify({
         type: 'keyboard',
@@ -85,7 +100,9 @@ function sendKeyEvent(action, code, key) {
         code: code, // 키보드의 물리적 위치
         key: key    // 키의 실제 문자 값
     });
-    socket.send(message);
+
+    if(socket.readyState === WebSocket.OPEN)
+        socket.send(message);
 }
 
 function sendMouseEvent(action, x, y, button = null) {
@@ -98,5 +115,6 @@ function sendMouseEvent(action, x, y, button = null) {
     if (button !== null) {
         message.button = button;
     }
-    socket.send(JSON.stringify(message));
+    if(socket.readyState === WebSocket.OPEN)
+        socket.send(JSON.stringify(message));
 }

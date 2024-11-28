@@ -25,10 +25,10 @@ JNIEXPORT void JNICALL Java_com_freerdp_services_LibFreeRDP_freerdp_1free
 
 /*
  * Class:     com_freerdp_services_LibFreeRDP
- * Method:    freerdp_login
+ * Method:    freerdp_parse_args
  * Signature: (JLjava/lang/String;)Z
  */
-JNIEXPORT jboolean JNICALL Java_com_freerdp_services_LibFreeRDP_freerdp_1login
+JNIEXPORT jboolean JNICALL Java_com_freerdp_services_LibFreeRDP_freerdp_1parse_1args
   (JNIEnv *, jclass, jlong, jstring);
 
 /*

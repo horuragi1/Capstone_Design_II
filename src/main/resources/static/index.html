@@ -1,6 +1,33 @@
 <html>
     <head>
         <link href="css/login.css" rel="stylesheet" type="text/css" />
+        <script>
+            // 폼 제출 이벤트를 처리하는 함수
+            function handleFormSubmit(event) {
+                // 폼 제출 기본 동작 중단
+                event.preventDefault();
+
+                // 사용자 입력값 가져오기
+                const user = document.getElementById('user').value;
+                const pw = document.getElementById('pw').value;
+                const ip = document.getElementById('ip').value;
+
+                // localStorage에 데이터 저장
+                localStorage.setItem('user', user);
+                localStorage.setItem('pw', pw);
+                localStorage.setItem('ip', ip);
+
+                // 서버로 폼 데이터 전송 (필요시 동적으로 생성하여 제출)
+                const form = event.target;
+                form.submit();
+            }
+
+            // DOM 로드 후 폼에 이벤트 리스너 추가
+            window.addEventListener('DOMContentLoaded', () => {
+                const form = document.forms['info-login'];
+                form.addEventListener('submit', handleFormSubmit);
+            });
+        </script>
     </head>
 
     <body>

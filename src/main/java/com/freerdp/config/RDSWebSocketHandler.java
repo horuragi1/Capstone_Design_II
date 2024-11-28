@@ -4,26 +4,17 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.freerdp.services.InputMapper;
 import com.freerdp.services.LibFreeRDP;
-import com.freerdp.user.UserData;
+import com.freerdp.services.UserDataManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.web.socket.BinaryMessage;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.Timer;
-import java.util.concurrent.TimeUnit;
-
-import java.awt.event.KeyEvent;
-
 public class RDSWebSocketHandler extends TextWebSocketHandler {
     private static final Logger logger = LoggerFactory.getLogger(RDSWebSocketHandler.class);
     private final ObjectMapper objectMapper;
-    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
     static int mouseState = InputMapper.MOUSE_HOLD;
     public RDSWebSocketHandler(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
@@ -31,8 +22,8 @@ public class RDSWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
-        UserData.ws = session;
         super.afterConnectionEstablished(session);
+        logger.info("Connection Established");
     }
 
     @Override
@@ -41,18 +32,22 @@ public class RDSWebSocketHandler extends TextWebSocketHandler {
         JsonNode jsonNode = objectMapper.readTree(payload);
         String type = jsonNode.get("type").asText();
 
-        if("keyboard".equals(type)){
-            handleKeyboardEvent(jsonNode);
+        if("login".equals(type)) {
+            handleLoginEvent(session, jsonNode);
+        }
+        else if("keyboard".equals(type)){
+            handleKeyboardEvent(session, jsonNode);
         } else if("mouse".equals(type)){
-            handleMouseEvent(jsonNode);
+            handleMouseEvent(session, jsonNode);
         }
 
     }
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
-        UserData.ws = null;
+        UserDataManager.logout(session);
         super.afterConnectionClosed(session, status);
+        logger.info("Connection Closed");
     }
 
     @Override
@@ -60,25 +55,57 @@ public class RDSWebSocketHandler extends TextWebSocketHandler {
         super.handleTransportError(session, exception);
     }
 
-    private void handleKeyboardEvent(JsonNode jsonNode) {
+    private void handleLoginEvent(WebSocketSession session, JsonNode jsonNode) {
+        String user = jsonNode.get("user").asText();
+        String pw = jsonNode.get("pw").asText();
+        String ip = jsonNode.get("ip").asText();
+        String args = String.format("./freerdp /u:%s /p:%s /v:%s", user, pw, ip);
+
+        if(UserDataManager.login(session, args))
+            logger.info("Login Success");
+        else
+            logger.info("Login Fail");
+    }
+
+
+    private void handleKeyboardEvent(WebSocketSession session, JsonNode jsonNode) {
+        long freerdpInstance = UserDataManager.getInstance(session);
+        if(freerdpInstance == 0)
+            return;
+
         String action = jsonNode.get("action").asText();
         String code = jsonNode.get("code").asText();
         String key = jsonNode.get("key").asText();
         boolean isDown = false;
+<<<<<<< Updated upstream
         int virtualCode = InputMapper.KeyboardEventToVirtualcode(key);
+=======
+        int virtualCode = InputMapper.KeyboardEventToScancode(key);
+>>>>>>> Stashed changes
 
         if('0' <= virtualCode && virtualCode <= '9' && key.charAt(0) == 'N')
             virtualCode += 0x30;
 
         if(action.equals("keydown")) {
             isDown = true;
+<<<<<<< Updated upstream
             //logger.info("action {} -> code: {}, key: {}, unicodeChar: {}", action, code, key, virtualCode);
         }
 
         LibFreeRDP.send_key_event(UserData.instance, virtualCode, isDown);
+=======
+            //logger.info("action {} -> code: {}, key: {}, virtualCode: {}", action, code, key, virtualCode);
+        }
+
+        LibFreeRDP.send_key_event(freerdpInstance, virtualCode, isDown);
+>>>>>>> Stashed changes
     }
 
-    private void handleMouseEvent(JsonNode jsonNode) {
+    private void handleMouseEvent(WebSocketSession session, JsonNode jsonNode) {
+        long freerdpInstance = UserDataManager.getInstance(session);
+        if(freerdpInstance == 0)
+            return;
+
         String action = jsonNode.get("action").asText();
         int x = jsonNode.get("x").asInt();
         int y = jsonNode.get("y").asInt();
@@ -95,7 +122,7 @@ public class RDSWebSocketHandler extends TextWebSocketHandler {
 
         //logger.info("action {} -> (x, y): ({}, {}), button: {}", action, x, y, button);
 
-       if(!LibFreeRDP.send_cursor_event(UserData.instance, x, y, button, mouseState))
+       if(!LibFreeRDP.send_cursor_event(freerdpInstance, x, y, button, mouseState))
            logger.info("FAIL: mouse event");
     }
 }
