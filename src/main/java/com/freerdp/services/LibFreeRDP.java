@@ -50,7 +50,6 @@ public class LibFreeRDP
     public static long newInstance() { return freerdp_new(); }
     public static void freeInstance(long inst) { freerdp_free(inst); }
     public static boolean parseArgs(long inst, String s) {
-        logger.info("parseArgs -> inst: {}, args: {}", inst, s);
         return freerdp_parse_args(inst, s);
     }
     public static boolean connect(long inst) {

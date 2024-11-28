@@ -18,21 +18,33 @@ public class UserDataManager {
         for(int i = 0; i < MAX_CLIENT_COUNT; i++) {
             userData[i] = new UserData();
             userData[i].instance = LibFreeRDP.newInstance();
-            logger.info("User{} instance: {}", i, userData[i].instance);
+            logger.info("Create Instance of User{}({})", i, userData[i].instance);
         }
         logger.info("CreateFreeRDPInstances");
     }
 
     public static void DeleteFreeRDPInstances() {
-        for(int i = 0; i < MAX_CLIENT_COUNT; i++)
+        for(int i = 0; i < MAX_CLIENT_COUNT; i++) {
+            if(userData[i].isConnected) {
+                userData[i].isConnected = false;
+                userData[i].ws = null;
+                if(LibFreeRDP.disconnect(userData[i].instance))
+                    logger.info("User{} disconnect success", i);
+                else
+                    logger.info("User{} disconnect fail", i);
+            }
+
             LibFreeRDP.freeInstance(userData[i].instance);
+            userData[i].instance = 0;
+            logger.info("Delete Instance of User{}", i);
+        }
         logger.info("DeleteFreeRDPInstances");
     }
 
     public static boolean login(WebSocketSession session, String args) {
         for(int i = 0; i < MAX_CLIENT_COUNT; i++) {
             if (!userData[i].isConnected) {
-                logger.info("User{} Select, {}", i, userData[i].instance);
+                logger.info("User{} Login, {}", i, userData[i].instance);
                 logger.info("input args: {}", args);
                 if (!LibFreeRDP.parseArgs(userData[i].instance, args)) {
                     logger.info("Parse Args Fail");
@@ -63,6 +75,9 @@ public class UserDataManager {
     public static boolean logout(WebSocketSession session) {
         for(int i = 0; i < MAX_CLIENT_COUNT; i++) {
             if(userData[i].isConnected && (userData[i].ws.getId().equals(session.getId()))) {
+                if(userData[i].instance == 0)
+                    return true;
+                logger.info("User{} Logout, {}", i, userData[i].instance);
                 userData[i].isConnected = false;
                 userData[i].ws = null;
                 if(LibFreeRDP.disconnect(userData[i].instance))
