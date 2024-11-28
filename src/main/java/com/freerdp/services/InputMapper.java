@@ -212,11 +212,7 @@ public class InputMapper {
     // pressed again)
     private static final int KEY_FLAG_TOGGLE = 0x40000000;
 
-<<<<<<< Updated upstream
     public static int KeyboardEventToVirtualcode(String key) {
-=======
-    public static int KeyboardEventToScancode(String key) {
->>>>>>> Stashed changes
         int VKCode = 0;
         if(key.length() == 1) {
             int keyCode = (int)key.charAt(0);

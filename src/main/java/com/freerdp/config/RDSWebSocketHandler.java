@@ -77,28 +77,17 @@ public class RDSWebSocketHandler extends TextWebSocketHandler {
         String code = jsonNode.get("code").asText();
         String key = jsonNode.get("key").asText();
         boolean isDown = false;
-<<<<<<< Updated upstream
         int virtualCode = InputMapper.KeyboardEventToVirtualcode(key);
-=======
-        int virtualCode = InputMapper.KeyboardEventToScancode(key);
->>>>>>> Stashed changes
 
         if('0' <= virtualCode && virtualCode <= '9' && key.charAt(0) == 'N')
             virtualCode += 0x30;
 
         if(action.equals("keydown")) {
             isDown = true;
-<<<<<<< Updated upstream
-            //logger.info("action {} -> code: {}, key: {}, unicodeChar: {}", action, code, key, virtualCode);
-        }
-
-        LibFreeRDP.send_key_event(UserData.instance, virtualCode, isDown);
-=======
             //logger.info("action {} -> code: {}, key: {}, virtualCode: {}", action, code, key, virtualCode);
         }
 
         LibFreeRDP.send_key_event(freerdpInstance, virtualCode, isDown);
->>>>>>> Stashed changes
     }
 
     private void handleMouseEvent(WebSocketSession session, JsonNode jsonNode) {
