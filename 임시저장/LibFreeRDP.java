@@ -162,13 +162,6 @@ public class LibFreeRDP
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         DataOutputStream dos = new DataOutputStream(baos);
         try {
-        	
-        	dos.writeShort(minX);
-        	dos.writeShort(minY);
-        	dos.writeShort(maxX);
-        	dos.writeShort(maxY);
-        	
-        	
             // 바운딩 박스 좌표와 색상 데이터를 전송
             for (int yy = minY; yy <= maxY; yy++) {
                 for (int xx = minX; xx <= maxX; xx++) {
@@ -178,8 +171,8 @@ public class LibFreeRDP
                     int b = bitmap[index] & 0xFF;
 
                     // Delta 데이터로 (x, y, r, g, b) 저장
-                    dos.writeShort(xx);
-                    dos.writeShort(yy);
+                    dos.writeByte(xx);
+                    dos.writeByte(yy);
                     dos.writeByte(r);
                     dos.writeByte(g);
                     dos.writeByte(b);
