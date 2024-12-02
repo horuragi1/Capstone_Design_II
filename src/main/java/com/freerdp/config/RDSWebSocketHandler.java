@@ -77,14 +77,14 @@ public class RDSWebSocketHandler extends TextWebSocketHandler {
         String code = jsonNode.get("code").asText();
         String key = jsonNode.get("key").asText();
         boolean isDown = false;
-        int virtualCode = InputMapper.KeyboardEventToVirtualcode(key);
+        int virtualCode = InputMapper.KeyboardEventToVirtualcode(code);
 
         if('0' <= virtualCode && virtualCode <= '9' && key.charAt(0) == 'N')
             virtualCode += 0x30;
 
         if(action.equals("keydown")) {
             isDown = true;
-            //logger.info("action {} -> code: {}, key: {}, virtualCode: {}", action, code, key, virtualCode);
+            logger.info("action {} -> code: {}, key: {}, virtualCode: {}", action, code, key, virtualCode);
         }
 
         LibFreeRDP.send_key_event(freerdpInstance, virtualCode, isDown);

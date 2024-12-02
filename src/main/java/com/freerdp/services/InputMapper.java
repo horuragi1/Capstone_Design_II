@@ -212,102 +212,91 @@ public class InputMapper {
     // pressed again)
     private static final int KEY_FLAG_TOGGLE = 0x40000000;
 
-    public static int KeyboardEventToVirtualcode(String key) {
+    public static int KeyboardEventToVirtualcode(String code) {
         int VKCode = 0;
-        if(key.length() == 1) {
-            int keyCode = (int)key.charAt(0);
-            // [a-z] [0-9] ' '
-            if('a' <= keyCode && keyCode <= 'z')
-                VKCode = keyCode - 32;
-            else if('*' <= keyCode && keyCode <= '/')
-                VKCode = keyCode + 0x40;
-            else
-                VKCode = keyCode;
-        }
-        else {
-            int firstChar = (int)key.charAt(0);
-            switch (firstChar) {
-                case 'A':
-                    if(key.equals("Alt"))
-                        VKCode = VK_MENU;
-                    else if(key.equals("ArrowLeft"))
-                        VKCode = VK_LEFT;
-                    else if(key.equals("ArrowUp"))
-                        VKCode = VK_UP;
-                    else if(key.equals("ArrowRight"))
-                        VKCode = VK_RIGHT;
-                    else if(key.equals("ArrowDown"))
-                        VKCode = VK_DOWN;
-                    break;
-                case 'B':
-                    if(key.equals("Backspace"))
-                        VKCode = VK_BACK;
-                    break;
-                case 'C':
-                    if(key.equals("Control"))
-                        VKCode = VK_CONTROL;
-                    else if(key.equals("CapsLock"))
-                        VKCode = VK_CAPITAL;
-                    else if(key.equals("ContextMenu"))
-                        VKCode = VK_APPS;
-                    break;
-                case 'D':
-                    if(key.equals("Delete"))
-                        VKCode = VK_DELETE;
-                    break;
-                case 'E':
-                    if(key.equals("Escape"))
-                        VKCode = VK_ESCAPE;
-                    else if(key.equals("Enter"))
-                        VKCode = VK_RETURN;
-                    else if(key.equals("End"))
-                        VKCode = VK_END;
-                    break;
-                case 'F':
-                    if(key.length() <= 3) {
-                        int num = Integer.parseInt(key.substring(1));
-                        VKCode = VK_F1 + num - 1;
-                    }
-                    break;
-                case 'H':
-                    if(key.equals("VK_HOME"))
-                        VKCode = VK_HOME;
-                    else if(key.equals("HangulMode"))
-                        VKCode = VK_HANGUEL;
-                    else if(key.equals("HanjaMode"))
-                        VKCode = VK_HANJA;
-                    break;
-                case 'I':
-                    if(key.equals("Insert"))
-                        VKCode = VK_INSERT;
-                    break;
-                case 'M':
-                    if(key.equals("Meta"))
-                        VKCode = VK_LWIN;
-                    break;
-                case 'N':
-                    if(key.equals("NumLock"))
-                        VKCode = VK_NUMLOCK;
-                    break;
-                case 'P':
-                    if(key.equals("PageDown"))
-                        VKCode = VK_NEXT;
-                    else if(key.equals("PageUp"))
-                        VKCode = VK_PRIOR;
-                    else if(key.equals("Pause"))
-                        VKCode = VK_PAUSE;
-                    break;
-                case 'S':
-                    if(key.equals("Shift"))
-                        VKCode = VK_SHIFT;
-                    else if(key.equals("ScrollLock"))
-                        VKCode = VK_SCROLL;
-                    break;
-                case 'T':
-                    if(key.equals("Tab"))
-                        VKCode = VK_TAB;
-                    break;
-            }
+
+        switch (code) {
+            case "KeyA": VKCode = VK_KEY_A; break;
+            case "KeyB": VKCode = VK_KEY_B; break;
+            case "KeyC": VKCode = VK_KEY_C; break;
+            case "KeyD": VKCode = VK_KEY_D; break;
+            case "KeyE": VKCode = VK_KEY_E; break;
+            case "KeyF": VKCode = VK_KEY_F; break;
+            case "KeyG": VKCode = VK_KEY_G; break;
+            case "KeyH": VKCode = VK_KEY_H; break;
+            case "KeyI": VKCode = VK_KEY_I; break;
+            case "KeyJ": VKCode = VK_KEY_J; break;
+            case "KeyK": VKCode = VK_KEY_K; break;
+            case "KeyL": VKCode = VK_KEY_L; break;
+            case "KeyM": VKCode = VK_KEY_M; break;
+            case "KeyN": VKCode = VK_KEY_N; break;
+            case "KeyO": VKCode = VK_KEY_O; break;
+            case "KeyP": VKCode = VK_KEY_P; break;
+            case "KeyQ": VKCode = VK_KEY_Q; break;
+            case "KeyR": VKCode = VK_KEY_R; break;
+            case "KeyS": VKCode = VK_KEY_S; break;
+            case "KeyT": VKCode = VK_KEY_T; break;
+            case "KeyU": VKCode = VK_KEY_U; break;
+            case "KeyV": VKCode = VK_KEY_V; break;
+            case "KeyW": VKCode = VK_KEY_W; break;
+            case "KeyX": VKCode = VK_KEY_X; break;
+            case "KeyY": VKCode = VK_KEY_Y; break;
+            case "KeyZ": VKCode = VK_KEY_Z; break;
+
+            case "Digit0": VKCode = VK_KEY_0; break;
+            case "Digit1": VKCode = VK_KEY_1; break;
+            case "Digit2": VKCode = VK_KEY_2; break;
+            case "Digit3": VKCode = VK_KEY_3; break;
+            case "Digit4": VKCode = VK_KEY_4; break;
+            case "Digit5": VKCode = VK_KEY_5; break;
+            case "Digit6": VKCode = VK_KEY_6; break;
+            case "Digit7": VKCode = VK_KEY_7; break;
+            case "Digit8": VKCode = VK_KEY_8; break;
+            case "Digit9": VKCode = VK_KEY_9; break;
+
+            case "ArrowUp": VKCode = VK_UP; break;
+            case "ArrowDown": VKCode = VK_DOWN; break;
+            case "ArrowLeft": VKCode = VK_LEFT; break;
+            case "ArrowRight": VKCode = VK_RIGHT; break;
+
+            case "F1": VKCode = VK_F1; break;
+            case "F2": VKCode = VK_F2; break;
+            case "F3": VKCode = VK_F3; break;
+            case "F4": VKCode = VK_F4; break;
+            case "F5": VKCode = VK_F5; break;
+            case "F6": VKCode = VK_F6; break;
+            case "F7": VKCode = VK_F7; break;
+            case "F8": VKCode = VK_F8; break;
+            case "F9": VKCode = VK_F9; break;
+            case "F10": VKCode = VK_F10; break;
+            case "F11": VKCode = VK_F11; break;
+            case "F12": VKCode = VK_F12; break;
+
+            case "ShiftLeft": VKCode = VK_LSHIFT; break;
+            case "ShiftRight": VKCode = VK_RSHIFT; break;
+            case "ControlLeft": VKCode = VK_LCONTROL; break;
+            case "ControlRight": VKCode = VK_RCONTROL; break;
+            case "AltLeft": VKCode = VK_LMENU; break;
+            case "AltRight": VKCode = VK_RMENU; break;
+            case "MetaLeft": VKCode = VK_LWIN; break;
+            case "MetaRight": VKCode = VK_RWIN; break;
+
+            case "Enter": VKCode = VK_RETURN; break;
+            case "Space": VKCode = VK_SPACE; break;
+            case "Backspace": VKCode = VK_BACK; break;
+            case "Tab": VKCode = VK_TAB; break;
+            case "CapsLock": VKCode = VK_CAPITAL; break;
+            case "Escape": VKCode = VK_ESCAPE; break;
+            case "Delete": VKCode = VK_DELETE; break;
+            case "Insert": VKCode = VK_INSERT; break;
+            case "Home": VKCode = VK_HOME; break;
+            case "End": VKCode = VK_END; break;
+            case "PageUp": VKCode = VK_PRIOR; break;
+            case "PageDown": VKCode = VK_NEXT; break;
+
+            default:
+                VKCode = 0;
+                break;
         }
 
         return VKCode;
