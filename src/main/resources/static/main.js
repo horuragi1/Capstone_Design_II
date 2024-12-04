@@ -58,6 +58,11 @@ canvas.addEventListener('mousemove', (event) => {
     sendMouseEvent('mousemove', x, y);
 });
 
+canvas.addEventListener('wheel', (event) => {
+    const { x, y } = getRelativeCoordinates(event);
+    sendWheelEvent('wheel', event.deltaX, event.deltaY, x, y);
+});
+
 // 상대 좌표 계산
 function getRelativeCoordinates(event) {
     const rect = canvas.getBoundingClientRect();
@@ -102,6 +107,20 @@ function sendMouseEvent(action, x, y, button = null) {
     }
     if (socket.readyState === WebSocket.OPEN)
         socket.send(JSON.stringify(message));
+}
+
+function sendWheelEvent(action, deltaX, deltaY, x, y) {
+    const message = {
+        type: 'wheel',
+        action: action,
+        deltaX: Math.round(deltaX),
+        deltaY: Math.round(deltaY),
+        x: Math.round(x),
+        y: Math.round(y)
+    };
+
+    if (socket.readyState === WebSocket.OPEN)
+            socket.send(JSON.stringify(message));
 }
 
 // Delta 데이터를 화면에 적용

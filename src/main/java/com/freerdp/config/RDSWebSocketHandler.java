@@ -40,7 +40,9 @@ public class RDSWebSocketHandler extends TextWebSocketHandler {
         } else if("mouse".equals(type)){
             handleMouseEvent(session, jsonNode);
         }
-
+        else if("wheel".equals(type)){
+            handleWheelEvent(session, jsonNode);
+        }
     }
 
     @Override
@@ -113,5 +115,19 @@ public class RDSWebSocketHandler extends TextWebSocketHandler {
 
        if(!LibFreeRDP.send_cursor_event(freerdpInstance, x, y, button, mouseState))
            logger.info("FAIL: mouse event");
+    }
+
+    private void handleWheelEvent(WebSocketSession session, JsonNode jsonNode) {
+        long freerdpInstance = UserDataManager.getInstance(session);
+        if(freerdpInstance == 0)
+            return;
+
+        String action = jsonNode.get("action").asText();
+        int deltaX = jsonNode.get("deltaX").asInt();
+        int deltaY = jsonNode.get("deltaY").asInt();
+        int x = jsonNode.get("x").asInt();
+        int y = jsonNode.get("y").asInt();
+
+        // freerdp api
     }
 }
