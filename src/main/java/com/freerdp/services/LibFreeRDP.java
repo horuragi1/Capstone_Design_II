@@ -79,54 +79,24 @@ public class LibFreeRDP
         return freerdp_send_key_event(inst, virtualCode, isDown);
     }
 
-    /*private static void OnGraphicsUpdate(long inst, int x, int y, int width, int height)
-    {
-        UserData userData = UserDataManager.getUserDataOf(inst);
-        if(userData == null || userData.ws == null)
-            return;
-
-        //logger.info("{}, {}, {}, {}, {}", inst, x, y, width, height);
-        copy_bitmap(inst, userData.bitmap, x, y, width, height);
-
-        if(userData.bitmap != null) {
-            int total_width = LibFreeRDP.get_width(userData.instance);
-            int total_height = LibFreeRDP.get_height(userData.instance);
-            if(userData.image == null)
-                userData.image = new BufferedImage(total_width, total_height, BufferedImage.TYPE_INT_RGB);
-
-            for (int yy = y; yy < y + height; yy++) {
-                for (int xx = x; xx < x + width; xx++) {
-                    int b = userData.bitmap[(yy*total_width + xx)*4] & 0xFF;
-                    int g = userData.bitmap[(yy*total_width + xx)*4 + 1] & 0xFF;
-                    int r = userData.bitmap[(yy*total_width + xx)*4 + 2] & 0xFF;
-                    int pixel = (r << 16) | (g << 8) | b;
-                    userData.image.setRGB(xx, yy, pixel);
-                }
-            }
-
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            try {
-                ImageIO.write(userData.image, "bmp", baos);
-                byte[] bitmapData = baos.toByteArray();
-                
-                userData.ws.sendMessage(new BinaryMessage(bitmapData));
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-    }*/
-    
- // Delta 데이터를 화면에 적용
     private static void OnGraphicsUpdate(long inst, int x, int y, int width, int height) {
         UserData userData = UserDataManager.getUserDataOf(inst);
         if (userData == null || userData.ws == null)
             return;
 
+        // 현재 비트맵 복사
         copy_bitmap(inst, userData.bitmap, x, y, width, height);
 
         if (userData.bitmap != null) {
             int total_width = LibFreeRDP.get_width(userData.instance);
             int total_height = LibFreeRDP.get_height(userData.instance);
+
+            // 이전 프레임이 없다면 초기화
+            if (userData.previousBitmap == null) {
+                userData.previousBitmap = new byte[userData.bitmap.length];
+                System.arraycopy(userData.bitmap, 0, userData.previousBitmap, 0, userData.bitmap.length);
+                return; // 첫 번째 프레임에서는 비교할 필요 없음
+            }
 
             // 변경된 영역의 바운딩 박스를 찾기
             int minX = Integer.MAX_VALUE;
@@ -137,11 +107,15 @@ public class LibFreeRDP
             // 바뀐 부분만 찾아서 바운딩 박스 계산
             for (int yy = y; yy < y + height; yy++) {
                 for (int xx = x; xx < x + width; xx++) {
-                    int b = userData.bitmap[(yy * total_width + xx) * 4] & 0xFF;
-                    int g = userData.bitmap[(yy * total_width + xx) * 4 + 1] & 0xFF;
-                    int r = userData.bitmap[(yy * total_width + xx) * 4 + 2] & 0xFF;
+                    int index = (yy * total_width + xx) * 4;
 
-                    if (r != 0 || g != 0 || b != 0) {  // 변경된 픽셀만 고려 (예시로 검정색 픽셀 제외)
+                    // 현재 픽셀과 이전 픽셀 비교
+                    boolean isDifferent =
+                            userData.bitmap[index] != userData.previousBitmap[index] ||       // Blue
+                            userData.bitmap[index + 1] != userData.previousBitmap[index + 1] || // Green
+                            userData.bitmap[index + 2] != userData.previousBitmap[index + 2];  // Red
+
+                    if (isDifferent) {
                         minX = Math.min(minX, xx);
                         maxX = Math.max(maxX, xx);
                         minY = Math.min(minY, yy);
@@ -154,8 +128,12 @@ public class LibFreeRDP
             if (minX <= maxX && minY <= maxY) {
                 sendDelta(userData.ws, minX, minY, maxX, maxY, userData.bitmap, total_width);
             }
+
+            // 현재 프레임을 이전 프레임으로 저장
+            System.arraycopy(userData.bitmap, 0, userData.previousBitmap, 0, userData.bitmap.length);
         }
     }
+
 
     private static void sendDelta(WebSocketSession ws, int minX, int minY, int maxX, int maxY, byte[] bitmap, int totalWidth) {
         // delta data 계산
