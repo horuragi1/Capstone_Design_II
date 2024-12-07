@@ -1,19 +1,19 @@
 package com.freerdp.services;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.freerdp.controller.LoginController;
 import com.freerdp.user.UserData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+import org.springframework.util.StopWatch;
 import org.springframework.web.socket.WebSocketSession;
 
-import java.awt.image.BufferedImage;
-
+@Component
 public class UserDataManager {
     private static final Logger logger = LoggerFactory.getLogger(UserDataManager.class);
     final static int MAX_CLIENT_COUNT = 5;
     static UserData[] userData = new UserData[MAX_CLIENT_COUNT];
-
+    public static StopWatch stopWatch = new StopWatch();
     public static void CreateFreeRDPInstances() {
         for(int i = 0; i < MAX_CLIENT_COUNT; i++) {
             userData[i] = new UserData();
@@ -64,7 +64,6 @@ public class UserDataManager {
                 int width = LibFreeRDP.get_width(userData[i].instance);
                 int height = LibFreeRDP.get_height(userData[i].instance);
                 userData[i].bitmap = new byte[4 * width * height];
-                userData[i].image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
 
                 return true;
             }
@@ -73,20 +72,24 @@ public class UserDataManager {
     }
 
     public static boolean logout(WebSocketSession session) {
+        boolean ret = true;
         for(int i = 0; i < MAX_CLIENT_COUNT; i++) {
             if(userData[i].isConnected && (userData[i].ws.getId().equals(session.getId()))) {
                 if(userData[i].instance == 0)
                     return true;
                 logger.info("User{} Logout, {}", i, userData[i].instance);
+                userData[i].initBitmapUpdateData();
                 userData[i].isConnected = false;
                 userData[i].ws = null;
                 if(LibFreeRDP.disconnect(userData[i].instance))
                     logger.info("disconnect success");
-                else
+                else {
                     logger.info("disconnect fail");
+                    ret = false;
+                }
             }
         }
-        return true;
+        return ret;
     }
 
     public static long getInstance(WebSocketSession session) {
@@ -107,5 +110,39 @@ public class UserDataManager {
             }
         }
         return null;
+    }
+
+    public static void updateBitmap(long instance, int minX, int minY, int maxX, int maxY) {
+        for(int i = 0; i < MAX_CLIENT_COUNT; i++) {
+            if(userData[i].isConnected && (userData[i].instance == instance)) {
+                int idx = userData[i].bitmapIndex;
+                if(minX < userData[i].minX[idx])
+                    userData[i].minX[idx] = minX;
+                if(minY < userData[i].minY[idx])
+                    userData[i].minY[idx] = minY;
+                if(userData[i].maxX[idx] < maxX)
+                    userData[i].maxX[idx] = maxX;
+                if(userData[i].maxY[idx] < maxY)
+                    userData[i].maxY[idx] = maxY;
+                userData[i].isUpdatedBitmap.set(true);
+            }
+        }
+    }
+
+    @Scheduled(fixedRate = 200)
+    public static void sendBitmap() {
+        for(int i = 0; i < MAX_CLIENT_COUNT; i++) {
+            if(userData[i].isConnected && userData[i].isUpdatedBitmap.get()) {
+                //stopWatch.start();
+                int idx = userData[i].startSendBitmap();
+                LibFreeRDP.copy_bitmap(userData[i].instance, userData[i].bitmap, userData[i].minX[idx], userData[i].minY[idx],
+                        userData[i].maxX[idx] - userData[i].minX[idx] + 1, userData[i].maxY[idx] - userData[i].minY[idx] + 1);
+                int totalWidth = LibFreeRDP.get_width(userData[i].instance);
+                LibFreeRDP.sendDelta(userData[i].ws, userData[i].minX[idx], userData[i].minY[idx], userData[i].maxX[idx], userData[i].maxY[idx], userData[i].bitmap, totalWidth);
+                userData[i].endSendBitmap();
+                //stopWatch.stop();
+                //logger.info("Send Message {}", stopWatch.getLastTaskTimeMillis());
+            }
+        }
     }
 }

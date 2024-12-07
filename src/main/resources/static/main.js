@@ -36,7 +36,7 @@ socket.onerror = (error) => {
 };
 
 document.addEventListener('keydown', (event) => {
-    sendKeyEvent('keydown', event.code, event.key);
+    sendKeyEvent('keydown', event.code, event.key, event.repeat, event.keyCode);
 });
 
 document.addEventListener('keyup', (event) => {
@@ -83,12 +83,13 @@ function sendLoginEvent(action, user, pw, ip) {
     socket.send(message);
 }
 
-function sendKeyEvent(action, code, key) {
+function sendKeyEvent(action, code, key, repeat) {
     const message = JSON.stringify({
         type: 'keyboard',
         action: action,
         code: code,
-        key: key
+        key: key,
+        repeat: repeat
     });
 
     if (socket.readyState === WebSocket.OPEN)
@@ -126,7 +127,8 @@ function sendWheelEvent(action, deltaX, deltaY, x, y) {
 // Delta 데이터를 화면에 적용
 function applyDelta(deltaData) {
     const delta = new Uint8Array(deltaData); // delta 데이터를 Uint8Array로 변환
-    let x, y, r, g, b;
+    /*
+        let x, y, r, g, b;
 
     // 바운딩 박스 좌표 추출
     let minX = (delta[0] << 8) | delta[1];
@@ -138,7 +140,7 @@ function applyDelta(deltaData) {
     //console.log('minY:', minY);
     //console.log('maxX:', maxX);
     //console.log('maxY:', maxY);
-    
+
     if(canvas.width < maxX){
 		canvas.width = maxX + 1;
 	}
@@ -167,6 +169,55 @@ function applyDelta(deltaData) {
         imgData.data[pixelIndex + 1] = g;
         imgData.data[pixelIndex + 2] = b;
         imgData.data[pixelIndex + 3] = 255;  // Alpha는 255로 설정
+    }
+     */
+    let r, g, b;
+
+    // 바운딩 박스 좌표 추출
+    let minX = (delta[0] << 8) | delta[1];
+    let minY = (delta[2] << 8) | delta[3];
+    let maxX = (delta[4] << 8) | delta[5];
+    let maxY = (delta[6] << 8) | delta[7];
+
+    //console.log('minX:', minX);
+    //console.log('minY:', minY);
+    //console.log('maxX:', maxX);
+    //console.log('maxY:', maxY);
+
+    if(canvas.width < maxX + 1){
+		canvas.width = maxX + 1;
+	}
+	if(canvas.height < maxY + 1){
+		canvas.height = maxY + 1;
+	}
+
+    // 바운딩 박스 크기 계산
+    let width = maxX - minX + 1;  // +1을 해서 실제 크기 반영
+    let height = maxY - minY + 1; // +1을 해서 실제 크기 반영
+
+    // 바운딩 박스 크기만큼의 ImageData 생성
+    let imgData = ctx.createImageData(width, height);
+
+    // Delta 데이터를 바운딩 박스를 기준으로 처리
+    let x = minX;
+    let y = minY;
+    for (let i = 8; i < delta.length; i += 3) {
+        r = delta[i]; // R 값
+        g = delta[i + 1]; // G 값
+        b = delta[i + 2]; // B 값
+
+        // 픽셀 인덱스 계산
+        const pixelIndex = ((y - minY) * width + (x - minX)) * 4;
+        imgData.data[pixelIndex] = r;
+        imgData.data[pixelIndex + 1] = g;
+        imgData.data[pixelIndex + 2] = b;
+        imgData.data[pixelIndex + 3] = 255;  // Alpha는 255로 설정
+
+        x += 1;
+        if(x > maxX){
+            x = minX;
+            y += 1;
+        }
     }
 
     // 변경된 부분만 업데이트

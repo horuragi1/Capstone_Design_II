@@ -1,7 +1,5 @@
 package com.freerdp.services;
 
-import java.awt.event.KeyEvent;
-
 public class InputMapper {
     static final int PTR_FLAGS_HWHEEL = 0x0400;
     static final int PTR_FLAGS_WHEEL = 0x0200;
@@ -213,8 +211,7 @@ public class InputMapper {
     private static final int KEY_FLAG_TOGGLE = 0x40000000;
 
     public static int KeyboardEventToVirtualcode(String code) {
-        int VKCode = 0;
-
+        int VKCode;
         switch (code) {
             case "KeyA": VKCode = VK_KEY_A; break;
             case "KeyB": VKCode = VK_KEY_B; break;
@@ -302,6 +299,153 @@ public class InputMapper {
         return VKCode;
     }
 
+    public static int getVirtualCode(String code, String key) {
+        int VKCode = 0;
+        int firstChar = (int)code.charAt(0);
+        switch (firstChar) {
+            case 'A':
+                if(code.equals("AltLeft"))
+                    VKCode = VK_LMENU;
+                else if(code.equals("AltRight")) {
+                    if(key.equals("HangulMode"))
+                        VKCode = VK_RMENU | VK_EXT_KEY;
+                    else
+                        VKCode = VK_RMENU;
+                }
+                else if(code.equals("ArrowLeft"))
+                    VKCode = VK_LEFT | VK_EXT_KEY;
+                else if(code.equals("ArrowUp"))
+                    VKCode = VK_UP | VK_EXT_KEY;
+                else if(code.equals("ArrowRight"))
+                    VKCode = VK_RIGHT | VK_EXT_KEY;
+                else if(code.equals("ArrowDown"))
+                    VKCode = VK_DOWN | VK_EXT_KEY;
+                break;
+            case 'B':
+                if(code.equals("Backspace"))
+                    VKCode = VK_BACK;
+                else if(code.equals("Backquote"))
+                    VKCode = VK_OEM_3;
+                else if (code.equals("BracketLeft"))
+                    VKCode = VK_OEM_4;
+                else if (code.equals("Backslash"))
+                    VKCode = VK_OEM_5;
+                else if (code.equals("BracketRight"))
+                    VKCode = VK_OEM_6;
+                break;
+            case 'C':
+                if(code.equals("ControlLeft"))
+                    VKCode = VK_LCONTROL;
+                else if(code.equals("ControlRight")) {
+                    if (key.equals("HanjaMode"))
+                        VKCode = VK_RCONTROL | VK_EXT_KEY;
+                    else
+                        VKCode = VK_RCONTROL;
+                }
+                else if(code.equals("Comma"))
+                    VKCode = VK_OEM_COMMA;
+                else if(code.equals("CapsLock"))
+                    VKCode = VK_CAPITAL;
+                else if(code.equals("ContextMenu"))
+                    VKCode = VK_APPS;
+                break;
+            case 'D':
+                if(code.startsWith("Digit"))
+                    VKCode = VK_KEY_0 + Integer.parseInt(code.substring(5));
+                if(code.equals("Delete"))
+                    VKCode = VK_DELETE | VK_EXT_KEY;
+                break;
+            case 'E':
+                if(code.equals("Escape"))
+                    VKCode = VK_ESCAPE;
+                else if(code.equals("Enter"))
+                    VKCode = VK_RETURN | VK_EXT_KEY;
+                else if(code.equals("End"))
+                    VKCode = VK_END | VK_EXT_KEY;
+                else if (code.equals("Equal"))
+                    VKCode = VK_OEM_PLUS;
+                break;
+            case 'F':
+                if(code.length() <= 3) {
+                    int num = Integer.parseInt(code.substring(1));
+                    VKCode = VK_F1 + num - 1;
+                }
+                break;
+            case 'H':
+                if(code.equals("HOME"))
+                    VKCode = VK_HOME | VK_EXT_KEY;
+                break;
+            case 'I':
+                if(code.equals("Insert"))
+                    VKCode = VK_INSERT | VK_EXT_KEY;
+                break;
+            case 'K':
+                VKCode = code.substring(3).charAt(0);
+            case 'M':
+                if(code.equals("Minus"))
+                    VKCode = VK_OEM_MINUS;
+                else if(code.equals("MetaLeft"))
+                    VKCode = VK_LWIN;
+                else if(code.equals("MetaRight"))
+                    VKCode = VK_RWIN;
+                break;
+            case 'N':
+                if(code.startsWith("Numpad")) {
+                    String numpad = code.substring(6);
+                    if(numpad.equals("Multiply"))
+                        VKCode = VK_MULTIPLY;
+                    else if(numpad.equals("Add"))
+                        VKCode = VK_ADD;
+                    else if(numpad.equals("Subtract"))
+                        VKCode = VK_SUBTRACT;
+                    else if(numpad.equals("Decimal"))
+                        VKCode = VK_DECIMAL;
+                    else if(numpad.equals("Divide"))
+                        VKCode = VK_DIVIDE | VK_EXT_KEY;
+                    else if(numpad.equals("Enter"))
+                        VKCode = VK_RETURN | VK_EXT_KEY;
+                    else
+                        VKCode = VK_NUMPAD0 + Integer.parseInt(numpad);
+                }
+                else if(code.equals("NumLock"))
+                    VKCode = VK_NUMLOCK;
+                break;
+            case 'P':
+                if(code.equals("Period"))
+                    VKCode = VK_OEM_PERIOD;
+                else if(code.equals("PageDown"))
+                    VKCode = VK_NEXT | VK_EXT_KEY;
+                else if(code.equals("PageUp"))
+                    VKCode = VK_PRIOR | VK_EXT_KEY;
+                else if(code.equals("Pause"))
+                    VKCode = VK_PAUSE;
+                break;
+            case 'Q':
+                if(code.equals("Quote"))
+                    VKCode = VK_OEM_7;
+                break;
+            case 'S':
+                if(code.equals("Space"))
+                    VKCode = VK_SPACE;
+                else if(code.equals("ShiftLeft"))
+                    VKCode = VK_LSHIFT;
+                else if(code.equals("ShiftRight"))
+                    VKCode = VK_RSHIFT;
+                else if(code.equals("ScrollLock"))
+                    VKCode = VK_SCROLL;
+                else if(code.equals("Semicolon"))
+                    VKCode = VK_OEM_1;
+                else if(code.equals("Slash"))
+                    VKCode = VK_OEM_2;
+                break;
+            case 'T':
+                if(code.equals("Tab"))
+                    VKCode = VK_TAB;
+                break;
+        }
+        return VKCode;
+    }
+
     public static int MouseEventToFlags(int buttonNum, int mouseState) {
         int flags = 0;
 
@@ -329,6 +473,20 @@ public class InputMapper {
                 flags |= PTR_FLAGS_BUTTON2;
                 break;
         }
+
+        return flags;
+    }
+
+    public static int WheelEventToFlags(int deltaY) {
+        int flags = 0;
+
+        flags |= PTR_FLAGS_WHEEL;
+        if (deltaY < 0) {
+            flags |= PTR_FLAGS_WHEEL_NEGATIVE;
+            /* 9bit twos complement, delta already negative */
+            deltaY = 0x100 + deltaY;
+        }
+        flags |= deltaY;
 
         return flags;
     }

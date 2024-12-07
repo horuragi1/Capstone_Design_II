@@ -79,17 +79,17 @@ public class RDSWebSocketHandler extends TextWebSocketHandler {
         String code = jsonNode.get("code").asText();
         String key = jsonNode.get("key").asText();
         boolean isDown = false;
-        int virtualCode = InputMapper.KeyboardEventToVirtualcode(code);
 
-        if('0' <= virtualCode && virtualCode <= '9' && key.charAt(0) == 'N')
-            virtualCode += 0x30;
+        boolean repeat = false;
+        int virtualCode = InputMapper.getVirtualCode(code, key);
 
         if(action.equals("keydown")) {
+            repeat = jsonNode.get("repeat").asBoolean();
             isDown = true;
-            logger.info("action {} -> code: {}, key: {}, virtualCode: {}", action, code, key, virtualCode);
+            //logger.info("action {} -> code: {}, key: {}, virtualCode: {}", action, code, key, virtualCode);
         }
 
-        LibFreeRDP.send_key_event(freerdpInstance, virtualCode, isDown);
+        LibFreeRDP.send_key_event(freerdpInstance, virtualCode, isDown, repeat);
     }
 
     private void handleMouseEvent(WebSocketSession session, JsonNode jsonNode) {
@@ -122,12 +122,13 @@ public class RDSWebSocketHandler extends TextWebSocketHandler {
         if(freerdpInstance == 0)
             return;
 
-        String action = jsonNode.get("action").asText();
-        int deltaX = jsonNode.get("deltaX").asInt();
         int deltaY = jsonNode.get("deltaY").asInt();
         int x = jsonNode.get("x").asInt();
         int y = jsonNode.get("y").asInt();
 
-        // freerdp api
+        //logger.info("deltaY: {}", deltaY);
+
+        if(!LibFreeRDP.send_wheel_event(freerdpInstance, x, y, -deltaY))
+            logger.info("FAIL: wheel event");
     }
 }

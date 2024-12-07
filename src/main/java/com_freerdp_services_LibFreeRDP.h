@@ -82,10 +82,10 @@ JNIEXPORT jboolean JNICALL Java_com_freerdp_services_LibFreeRDP_freerdp_1send_1c
 /*
  * Class:     com_freerdp_services_LibFreeRDP
  * Method:    freerdp_send_key_event
- * Signature: (JIZ)Z
+ * Signature: (JIZZ)Z
  */
 JNIEXPORT jboolean JNICALL Java_com_freerdp_services_LibFreeRDP_freerdp_1send_1key_1event
-  (JNIEnv *, jclass, jlong, jint, jboolean);
+  (JNIEnv *, jclass, jlong, jint, jboolean, jboolean);
 
 #ifdef __cplusplus
 }
