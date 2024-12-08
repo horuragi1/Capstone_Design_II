@@ -133,15 +133,18 @@ public class UserDataManager {
     public static void sendBitmap() {
         for(int i = 0; i < MAX_CLIENT_COUNT; i++) {
             if(userData[i].isConnected && userData[i].isUpdatedBitmap.get()) {
-                //stopWatch.start();
+                stopWatch.start();
                 int idx = userData[i].startSendBitmap();
+                int w = (userData[i].maxX[idx] - userData[i].minX[idx] + 1);
+                int h = (userData[i].maxY[idx] - userData[i].minY[idx] + 1);
+                int size =  w * h * 3;
                 LibFreeRDP.copy_bitmap(userData[i].instance, userData[i].bitmap, userData[i].minX[idx], userData[i].minY[idx],
                         userData[i].maxX[idx] - userData[i].minX[idx] + 1, userData[i].maxY[idx] - userData[i].minY[idx] + 1);
                 int totalWidth = LibFreeRDP.get_width(userData[i].instance);
                 LibFreeRDP.sendDelta(userData[i].ws, userData[i].minX[idx], userData[i].minY[idx], userData[i].maxX[idx], userData[i].maxY[idx], userData[i].bitmap, totalWidth);
                 userData[i].endSendBitmap();
-                //stopWatch.stop();
-                //logger.info("Send Message {}", stopWatch.getLastTaskTimeMillis());
+                stopWatch.stop();
+                logger.info("Send Message (w, h, size) : ({}, {}, {}), time: {}", w, h, size, stopWatch.getLastTaskTimeMillis());
             }
         }
     }
